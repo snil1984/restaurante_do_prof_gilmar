@@ -235,7 +235,7 @@
                 <!-- Coluna do Candidato a Diretor -->
                 <div class="sm:col-span-4 flex flex-col items-center text-center bg-gradient-to-b from-emerald-50 to-amber-100/80 p-3 rounded-2xl border-2 border-amber-600/40 shadow">
                     <div class="w-32 h-36 sm:w-36 sm:h-40 rounded-xl overflow-hidden border-4 border-emerald-700 bg-white shadow-md">
-                        <img id="finalPhotoPreview" src="gilmar.png" alt="Prof. Gilmar Macedo Brito" class="w-full h-full object-cover">
+                        <img id="finalPhotoPreview" src="./gilmar.png" alt="Prof. Gilmar Macedo Brito" class="w-full h-full object-cover">
                     </div>
                     <p class="mt-2 text-xs font-extrabold text-emerald-950">Prof. Gilmar Macedo Brito</p>
                     <span class="mt-0.5 text-[10px] font-bold text-emerald-800 bg-emerald-200/80 px-2.5 py-0.5 rounded-full">
@@ -271,37 +271,7 @@
 
     <script>
         // --- RETRATO PADRÃO AMIGÁVEL (SVG DATA URI) ---
-        const DEFAULT_AVATAR_SVG = "data:image/gilmar.png;" + encodeURIComponent(`
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220">
-                <defs>
-                    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="#10b981"/>
-                        <stop offset="100%" stop-color="#047857"/>
-                    </linearGradient>
-                </defs>
-                <rect width="200" height="220" fill="url(#bg)"/>
-                <circle cx="100" cy="45" r="70" fill="#facc15" opacity="0.22"/>
-                <path d="M35 220 C35 168, 165 168, 165 220 Z" fill="#ffffff"/>
-                <path d="M82 168 L100 192 L118 168 Z" fill="#e2e8f0"/>
-                <rect x="86" y="132" width="28" height="40" rx="10" fill="#e0a986"/>
-                <ellipse cx="100" cy="102" rx="40" ry="46" fill="#edb995"/>
-                <g fill="#27272a">
-                    <circle cx="66" cy="78" r="14"/><circle cx="78" cy="60" r="16"/>
-                    <circle cx="100" cy="54" r="18"/><circle cx="122" cy="60" r="16"/>
-                    <circle cx="134" cy="78" r="14"/><circle cx="62" cy="96" r="11"/>
-                    <circle cx="138" cy="96" r="11"/>
-                </g>
-                <rect x="70" y="92" width="24" height="14" rx="4" fill="none" stroke="#1e293b" stroke-width="2.5"/>
-                <rect x="106" y="92" width="24" height="14" rx="4" fill="none" stroke="#1e293b" stroke-width="2.5"/>
-                <line x1="94" y1="98" x2="106" y2="98" stroke="#1e293b" stroke-width="2.5"/>
-                <circle cx="82" cy="99" r="3" fill="#1e293b"/>
-                <circle cx="118" cy="99" r="3" fill="#1e293b"/>
-                <path d="M84 120 Q100 134 116 120 Z" fill="#ffffff"/>
-                <path d="M84 120 Q100 134 116 120" fill="none" stroke="#7c2d12" stroke-width="2"/>
-                <rect x="18" y="192" width="164" height="22" rx="11" fill="#facc15"/>
-                <text x="100" y="207" font-family="sans-serif" font-size="11" font-weight="bold" fill="#064e3b" text-anchor="middle">DIREÇÃO DO CAMPUS</text>
-            </svg>
-        `);
+        const DEFAULT_AVATAR_SVG = "./gilmar.png";         
 
         // --- SISTEMA DE ÁUDIO SINTETIZADO (WEB AUDIO API) COM MUDO ---
         class SoundFX {
