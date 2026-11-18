@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurante do Grilo: Voucher Digital & Espaço de Convivência</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fontes Google -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Caveat:wght@700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Fredoka', sans-serif;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .handwritten {
+            font-family: 'Caveat', cursive;
+        }
+        @keyframes pop-in {
+            0% { transform: scale(0.88) translateY(12px); opacity: 0; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        .animate-pop-in {
+            animation: pop-in 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        .stamp-approved {
+            transform: rotate(-6deg);
+            border: 4px dashed #15803d;
+            color: #15803d;
+            box-shadow: 0 0 0 4px rgba(21, 128, 61, 0.14);
+        }
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #fef3c7;
+            border-radius: 8px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #15803d;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body class="bg-stone-900 text-stone-100 min-h-screen flex flex-col items-center justify-center p-2 sm:p-4 overflow-x-hidden">
+
+    <!-- Container Principal -->
+    <div class="relative w-full max-w-5xl bg-stone-800 rounded-3xl shadow-2xl border-4 border-emerald-500/40 overflow-hidden flex flex-col">
+        
+        <!-- HUD Superior -->
+        <div class="w-full bg-stone-950/95 px-3 sm:px-5 py-2.5 flex flex-wrap items-center justify-between border-b border-stone-700/70 gap-2">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-600/20 border border-emerald-400/40 flex items-center justify-center text-xl sm:text-2xl">
+                    🦗
+                </div>
+                <div>
+                    <h1 class="text-sm sm:text-lg font-extrabold bg-gradient-to-r from-emerald-400 via-yellow-300 to-emerald-300 bg-clip-text text-transparent leading-tight">
+                        Restaurante do Grilo: Voucher Digital & Wi-Fi Livre
+                    </h1>
+                    <p class="text-[11px] text-amber-300 font-semibold">
+                        Prof. Gilmar Macedo Brito • Campus & Escola
+                    </p>
+                </div>
+            </div>
+
+            <!-- Indicadores & Botão de Mudo -->
+            <div class="flex items-center gap-2 sm:gap-2.5 text-xs">
+                <div class="bg-stone-900 px-2.5 py-1.5 rounded-xl border border-stone-700 flex items-center gap-1.5">
+                    <i class="fa-solid fa-layer-group text-yellow-400"></i>
+                    <span id="hudStageText" class="font-bold text-yellow-300">Etapa 1/4</span>
+                </div>
+                <div class="bg-emerald-950/80 px-2.5 py-1.5 rounded-xl border border-emerald-500/40 flex items-center gap-1.5">
+                    <i class="fa-solid fa-star text-amber-400"></i>
+                    <span id="hudScoreText" class="font-bold text-amber-300">0 pts</span>
+                </div>
+                <button id="btnMute" title="Ativar/Desativar Som" class="bg-stone-900 hover:bg-stone-800 text-emerald-300 w-9 h-9 rounded-xl border border-stone-700 flex items-center justify-center transition">
+                    <i id="muteIcon" class="fa-solid fa-volume-high"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Barra de Progresso das 4 Etapas -->
+        <div class="w-full bg-stone-950 px-4 py-1.5 border-b border-stone-800">
+            <div class="w-full h-2.5 bg-stone-800 rounded-full overflow-hidden">
+                <div id="stageProgressBar" class="h-full bg-gradient-to-r from-emerald-500 via-yellow-400 to-sky-400 transition-all duration-300 rounded-full" style="width: 12%;"></div>
+            </div>
+            <div class="grid grid-cols-4 gap-1 text-[9px] sm:text-[10px] text-stone-400 mt-1 font-semibold text-center">
+                <span id="stepLabel1" class="text-yellow-300 font-bold truncate">1. Voucher Digital</span>
+                <span id="stepLabel2" class="truncate">2. Buffet & Cardápio</span>
+                <span id="stepLabel3" class="truncate">3. Mesa & Celular</span>
+                <span id="stepLabel4" class="truncate">4. Convivência Wi-Fi</span>
+            </div>
+        </div>
+
+        <!-- Área Principal do Canvas -->
+        <div class="relative w-full aspect-[16/9] min-h-[320px] max-h-[65vh] bg-amber-100 overflow-hidden" id="gameContainer">
+            <canvas id="gameCanvas" class="w-full h-full block cursor-pointer"></canvas>
+
+            <!-- Banner Superior de Instrução Dinâmica -->
+            <div id="stageHintBanner" class="hidden absolute top-2.5 left-1/2 -translate-x-1/2 bg-stone-950/90 text-white px-3.5 py-1.5 rounded-full border border-yellow-400/60 text-[11px] sm:text-xs font-bold shadow-lg backdrop-blur-sm flex items-center gap-2 z-10 max-w-[94%] truncate">
+                <span id="stageHintIcon" class="text-yellow-400"><i class="fa-solid fa-qrcode"></i></span>
+                <span id="stageHintText" class="truncate">Clique ou pressione ESPAÇO para ler o Voucher Digital!</span>
+            </div>
+
+            <!-- Painel Lateral Cardápio Digital de Amanhã (Etapa 2) -->
+            <div id="tomorrowMenuPopup" class="hidden absolute top-12 right-2.5 w-56 sm:w-64 bg-emerald-950/95 text-white rounded-2xl border-2 border-yellow-400 p-2.5 sm:p-3 shadow-2xl z-20 animate-pop-in">
+                <div class="flex items-center justify-between border-b border-emerald-700 pb-1 mb-1.5">
+                    <span class="text-[9px] font-extrabold uppercase tracking-wider bg-yellow-400 text-stone-950 px-2 py-0.5 rounded-full">
+                        <i class="fa-solid fa-tv"></i> Cardápio Digital
+                    </span>
+                    <span class="text-[9px] text-emerald-300 font-bold">Amanhã</span>
+                </div>
+                <p class="text-[11px] font-bold text-yellow-300 mb-1">Refeição de Amanhã:</p>
+                <ul class="text-[10px] text-emerald-100 space-y-0.5 leading-snug">
+                    <li>🐟 Peixe assado com ervas</li>
+                    <li>🍚 Arroz integral & feijão</li>
+                    <li>🥗 Salada tropical & suco natural</li>
+                </ul>
+                <div class="mt-1.5 pt-1 border-t border-emerald-800 text-[9px] text-amber-300 font-bold flex items-center justify-between">
+                    <span><i class="fa-solid fa-leaf"></i> Zero Desperdício</span>
+                    <span>100% Nutritivo</span>
+                </div>
+            </div>
+
+            <!-- TELA INICIAL (OVERLAY) -->
+            <div id="startOverlay" class="absolute inset-0 bg-gradient-to-br from-emerald-950/95 via-stone-900/95 to-amber-950/95 backdrop-blur-md flex flex-col items-center justify-center p-4 sm:p-6 z-30 overflow-y-auto">
+                <div class="w-full max-w-2xl bg-white/10 border-2 border-yellow-400/40 rounded-3xl p-4 sm:p-6 shadow-2xl backdrop-blur-sm">
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+                        
+                        <!-- Cartão da Foto do Candidato -->
+                        <div class="sm:col-span-5 flex flex-col items-center text-center bg-amber-50 text-stone-900 rounded-2xl p-3.5 border-4 border-yellow-400 shadow-lg">
+                            <div class="relative w-28 h-32 sm:w-32 sm:h-36 rounded-xl overflow-hidden bg-gradient-to-b from-emerald-100 to-emerald-200 border-2 border-emerald-600 shadow-inner flex items-center justify-center">
+                                <img id="startPhotoPreview" src="gilmar.png" alt="Prof. Gilmar Macedo Brito" class="w-full h-full object-cover">
+                            </div>
+
+                            <label for="candidatePhotoInput" class="mt-2.5 cursor-pointer bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-camera"></i> Trocar Foto (Opcional)
+                            </label>
+                            <input type="file" id="candidatePhotoInput" accept="image/*" class="hidden">
+
+                            <div class="mt-2 pt-2 border-t border-stone-300 w-full">
+                                <p class="handwritten text-xl text-emerald-900 font-bold leading-none">Prof. Gilmar Macedo Brito</p>
+                                <p class="text-[10px] font-bold uppercase tracking-wider text-stone-600 mt-0.5">Candidato a Diretor</p>
+                            </div>
+                        </div>
+
+                        <!-- Apresentação das 4 Etapas -->
+                        <div class="sm:col-span-7 flex flex-col justify-between text-center sm:text-left space-y-3">
+                            <div>
+                                <span class="inline-flex items-center gap-1.5 bg-yellow-400 text-stone-950 text-[11px] font-extrabold px-3 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                                    <span>🦗</span> Restaurante do Grilo
+                                </span>
+                                <h2 class="text-xl sm:text-2xl font-extrabold text-white mt-1.5 leading-tight">
+                                    Voucher Digital & Espaço de Convivência!
+                                </h2>
+                                <p class="text-xs sm:text-sm text-amber-100 mt-1.5 leading-relaxed">
+                                    Acompanhe o <strong>Grilo Estudante</strong> em 4 etapas rápidas: leitura do <strong>Voucher Digital</strong> sem demora, <strong>refeição saudável</strong>, pausa rápida na mesa e conexão no <strong>Espaço de Convivência com Wi-Fi Livre</strong>!
+                                </p>
+                            </div>
+
+                            <div class="bg-stone-950/65 border border-emerald-400/30 rounded-xl p-2.5 text-[11px] text-emerald-100 space-y-1">
+                                <div class="font-bold text-yellow-300 uppercase tracking-wide">Controles Rápidos:</div>
+                                <p>• Toque na tela, clique no botão inferior ou aperte <kbd class="bg-white/15 px-1.5 py-0.5 rounded text-yellow-300 font-bold">ESPAÇO</kbd> para avançar cada etapa.</p>
+                            </div>
+
+                            <button id="btnStartGame" class="w-full bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-300 hover:from-yellow-300 hover:to-amber-300 text-stone-950 font-extrabold py-3 px-6 rounded-2xl shadow-lg shadow-yellow-500/25 transition transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 text-base">
+                                <i class="fa-solid fa-play"></i> Começar Agora
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Barra de Ação Rápida Inferior -->
+        <div class="w-full bg-stone-950 p-3 border-t border-stone-800 flex items-center justify-between gap-3">
+            <button id="btnMainAction" class="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 active:scale-[0.99] text-stone-950 font-extrabold py-3 px-5 rounded-2xl shadow-lg shadow-emerald-950/60 transition flex items-center justify-center gap-2 text-sm sm:text-base">
+                <i id="btnMainActionIcon" class="fa-solid fa-qrcode text-lg"></i>
+                <span id="btnMainActionText">LER VOUCHER DIGITAL (ESPAÇO / TOQUE)</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL FINAL: CERTIFICADO DE COMPROMISSOS -->
+    <div id="finalProposalModal" class="fixed inset-0 z-50 bg-stone-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 overflow-y-auto hidden">
+        <div class="relative w-full max-w-3xl bg-amber-50 text-stone-800 rounded-3xl shadow-2xl border-4 sm:border-8 border-emerald-700/50 p-4 sm:p-6 my-auto animate-pop-in">
+            
+            <!-- Cabeçalho -->
+            <div class="text-center border-b-2 border-amber-900/15 pb-3 mb-4">
+                <div class="inline-flex items-center gap-2 bg-emerald-600 text-white text-xs font-extrabold px-3.5 py-1 rounded-full uppercase tracking-wider mb-1.5 shadow">
+                    <i class="fa-solid fa-award"></i> Certificado de Compromissos Concluído
+                </div>
+                <h2 class="text-xl sm:text-2xl font-extrabold text-emerald-950">
+                    Restaurante Ágil & Espaço de Convivência Conectado!
+                </h2>
+                <p class="text-xs sm:text-sm text-amber-900 font-medium mt-0.5">
+                    Mais tempo livre, alimentação saudável e estrutura moderna para os estudantes do Campus.
+                </p>
+            </div>
+
+            <!-- Conteúdo Principal: Compromissos + Foto do Candidato -->
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-start">
+                
+                <!-- Lista de Compromissos -->
+                <div class="sm:col-span-8 space-y-2.5">
+                    <div class="bg-white/95 rounded-2xl p-3.5 border-2 border-emerald-600/30 shadow-inner">
+                        <h3 class="text-xs font-extrabold uppercase tracking-wider text-emerald-800 flex items-center gap-1.5 mb-2 pb-1.5 border-b border-emerald-900/10">
+                            <i class="fa-solid fa-circle-check text-emerald-600"></i> Compromissos Oficiais para a Comunidade Estudantil:
+                        </h3>
+                        <ul class="space-y-2 text-xs text-stone-800 max-h-[210px] overflow-y-auto custom-scroll pr-1">
+                            <li class="bg-emerald-50/90 border border-emerald-200 rounded-xl p-2 flex items-start gap-2">
+                                <span class="text-emerald-700 font-extrabold">✓</span>
+                                <span><strong>Voucher Digital Sem Filas:</strong> Liberação instantânea na catraca do Restaurante Estudantil pelo celular, eliminando longas esperas no horário do almoço.</span>
+                            </li>
+                            <li class="bg-emerald-50/90 border border-emerald-200 rounded-xl p-2 flex items-start gap-2">
+                                <span class="text-emerald-700 font-extrabold">✓</span>
+                                <span><strong>Alimentação Saudável e Nutritiva:</strong> Cardápio balanceado com proteínas, grãos, saladas frescas e frutas regionais para a saúde dos discentes.</span>
+                            </li>
+                            <li class="bg-emerald-50/90 border border-emerald-200 rounded-xl p-2 flex items-start gap-2">
+                                <span class="text-emerald-700 font-extrabold">✓</span>
+                                <span><strong>Cardápio Digital Antecipado:</strong> Divulgação prévia da refeição do dia seguinte em painel digital e canais do Campus com foco em zero desperdício.</span>
+                            </li>
+                            <li class="bg-sky-50/90 border border-sky-200 rounded-xl p-2 flex items-start gap-2">
+                                <span class="text-sky-700 font-extrabold">✓</span>
+                                <span><strong>Espaço de Convivência Revitalizado com Wi-Fi Livre:</strong> Ambiente moderno com sofás, mesas de estudo, pontos de energia e Wi-Fi gratuito e estável para os alunos.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Coluna do Candidato a Diretor -->
+                <div class="sm:col-span-4 flex flex-col items-center text-center bg-gradient-to-b from-emerald-50 to-amber-100/80 p-3 rounded-2xl border-2 border-amber-600/40 shadow">
+                    <div class="w-32 h-36 sm:w-36 sm:h-40 rounded-xl overflow-hidden border-4 border-emerald-700 bg-white shadow-md">
+                        <img id="finalPhotoPreview" src="gilmar.png" alt="Prof. Gilmar Macedo Brito" class="w-full h-full object-cover">
+                    </div>
+                    <p class="mt-2 text-xs font-extrabold text-emerald-950">Prof. Gilmar Macedo Brito</p>
+                    <span class="mt-0.5 text-[10px] font-bold text-emerald-800 bg-emerald-200/80 px-2.5 py-0.5 rounded-full">
+                        Direção do Campus
+                    </span>
+                </div>
+            </div>
+
+            <!-- Rodapé com Selo e Assinatura -->
+            <div class="mt-4 pt-3 border-t border-amber-900/20 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div class="stamp-approved px-4 py-1 rounded-xl text-center font-black uppercase text-xs sm:text-sm tracking-widest">
+                    COMPROMISSO FIRMADO
+                </div>
+
+                <div class="text-center sm:text-right">
+                    <p class="handwritten text-2xl sm:text-3xl text-emerald-950 font-bold leading-none">
+                        Prof. Gilmar Macedo Brito
+                    </p>
+                    <p class="text-[10px] uppercase font-bold text-amber-800/80 tracking-wider mt-0.5">
+                        Assinatura Oficial do Candidato a Diretor
+                    </p>
+                </div>
+            </div>
+
+            <!-- Botão Jogar Novamente -->
+            <div class="mt-4 flex justify-end">
+                <button id="btnPlayAgain" class="w-full sm:w-auto bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-extrabold px-6 py-2.5 rounded-2xl shadow-lg transition transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-solid fa-rotate-right"></i> Jogar Novamente
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- RETRATO PADRÃO AMIGÁVEL (SVG DATA URI) ---
+        const DEFAULT_AVATAR_SVG = "data:image/gilmar.png;" + encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220">
+                <defs>
+                    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#10b981"/>
+                        <stop offset="100%" stop-color="#047857"/>
+                    </linearGradient>
+                </defs>
+                <rect width="200" height="220" fill="url(#bg)"/>
+                <circle cx="100" cy="45" r="70" fill="#facc15" opacity="0.22"/>
+                <path d="M35 220 C35 168, 165 168, 165 220 Z" fill="#ffffff"/>
+                <path d="M82 168 L100 192 L118 168 Z" fill="#e2e8f0"/>
+                <rect x="86" y="132" width="28" height="40" rx="10" fill="#e0a986"/>
+                <ellipse cx="100" cy="102" rx="40" ry="46" fill="#edb995"/>
+                <g fill="#27272a">
+                    <circle cx="66" cy="78" r="14"/><circle cx="78" cy="60" r="16"/>
+                    <circle cx="100" cy="54" r="18"/><circle cx="122" cy="60" r="16"/>
+                    <circle cx="134" cy="78" r="14"/><circle cx="62" cy="96" r="11"/>
+                    <circle cx="138" cy="96" r="11"/>
+                </g>
+                <rect x="70" y="92" width="24" height="14" rx="4" fill="none" stroke="#1e293b" stroke-width="2.5"/>
+                <rect x="106" y="92" width="24" height="14" rx="4" fill="none" stroke="#1e293b" stroke-width="2.5"/>
+                <line x1="94" y1="98" x2="106" y2="98" stroke="#1e293b" stroke-width="2.5"/>
+                <circle cx="82" cy="99" r="3" fill="#1e293b"/>
+                <circle cx="118" cy="99" r="3" fill="#1e293b"/>
+                <path d="M84 120 Q100 134 116 120 Z" fill="#ffffff"/>
+                <path d="M84 120 Q100 134 116 120" fill="none" stroke="#7c2d12" stroke-width="2"/>
+                <rect x="18" y="192" width="164" height="22" rx="11" fill="#facc15"/>
+                <text x="100" y="207" font-family="sans-serif" font-size="11" font-weight="bold" fill="#064e3b" text-anchor="middle">DIREÇÃO DO CAMPUS</text>
+            </svg>
+        `);
+
+        // --- SISTEMA DE ÁUDIO SINTETIZADO (WEB AUDIO API) COM MUDO ---
+        class SoundFX {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+            }
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+            }
+            toggleMute() {
+                this.muted = !this.muted;
+                return this.muted;
+            }
+            playTone(freqs, type = 'sine', duration = 0.22, step = 0.08, vol = 0.2) {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                freqs.forEach((f, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(f, now + idx * step);
+                    gain.gain.setValueAtTime(vol, now + idx * step);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * step + duration);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + idx * step);
+                    osc.stop(now + idx * step + duration);
+                });
+            }
+            playQRBeep() { this.playTone([987.77, 1318.51], 'sine', 0.2, 0.06, 0.22); }
+            playFoodPick() { this.playTone([523.25, 659.25, 783.99], 'triangle', 0.22, 0.06, 0.2); }
+            playEatBite() { this.playTone([392.0, 523.25], 'sine', 0.14, 0.05, 0.18); }
+            playWifiConnect() { this.playTone([440, 554.37, 659.25, 880], 'sine', 0.25, 0.07, 0.2); }
+            playVictory() { this.playTone([523.25, 659.25, 783.99, 1046.5], 'triangle', 0.4, 0.1, 0.22); }
+        }
+        const sfx = new SoundFX();
+
+        // --- UPLOAD DE FOTO ---
+        let candidatePhoto = DEFAULT_AVATAR_SVG;
+        const startPhotoPreview = document.getElementById('startPhotoPreview');
+        const finalPhotoPreview = document.getElementById('finalPhotoPreview');
+        startPhotoPreview.src = candidatePhoto;
+        finalPhotoPreview.src = candidatePhoto;
+
+        document.getElementById('candidatePhotoInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                candidatePhoto = ev.target.result;
+                startPhotoPreview.src = candidatePhoto;
+                finalPhotoPreview.src = candidatePhoto;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Botão de Mudo
+        document.getElementById('btnMute').addEventListener('click', () => {
+            const isMuted = sfx.toggleMute();
+            const icon = document.getElementById('muteIcon');
+            icon.className = isMuted ? 'fa-solid fa-volume-xmark text-rose-400' : 'fa-solid fa-volume-high';
+        });
+
+        // --- CANVAS & ESTADO GLOBAL DO JOGO ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const WIDTH = 900;
+        const HEIGHT = 480;
+        canvas.width = WIDTH;
+        canvas.height = HEIGHT;
+
+        let gameRunning = false;
+        let stage = 1; // 1: Catraca Voucher, 2: Buffet Saudável, 3: Mesa & Celular, 4: Espaço Convivência Wi-Fi
+        let score = 0;
+        let frame = 0;
+        let animId = null;
+        let floatingFeedbacks = [];
+
+        // Etapa 1: Catraca & Voucher Digital (5 na fila tradicional vs 3 no voucher + Grilo)
+        let voucherScanned = false;
+        let stage1TransitionTimer = 0;
+        let cricketX1 = 445;
+        let voucherStudentsX = [565, 625, 685]; // 3 alunos na frente da catraca digital
+
+        // Etapa 2: Buffet Saudável & Cardápio Digital
+        const BUFFET_FOODS = [
+            { id: 'rice', label: 'Arroz Integral & Feijão', icon: '🍚', color: '#fef08a', x: 185, y: 270, r: 44, picked: false },
+            { id: 'fish', label: 'Peixe Assado / Proteína', icon: '🐟', color: '#bae6fd', x: 335, y: 270, r: 44, picked: false },
+            { id: 'salad', label: 'Salada Tropical & Suco', icon: '🥗', color: '#bbf7d0', x: 485, y: 270, r: 44, picked: false }
+        ];
+        let pickedFoods = [];
+
+        // Etapa 3: Mesa do Refeitório (Comendo e usando o celular rapidamente)
+        let mealProgress = 0; // 0 a 3 mordidas/interações rápidas
+        const PHONE_NOTIFS = [
+            '📱 Horário da aula conferido!',
+            '📚 Material baixado no portal!',
+            '✅ Refeição saudável concluída!'
+        ];
+        let activePhoneBubble = '📱 Checando avisos da turma...';
+
+        // Etapa 4: Espaço de Convivência com Wi-Fi Livre
+        let cricketX4 = 150;
+        let wifiConnected = false;
+        let wifiTransitionTimer = 0;
+
+        const PEER_COLORS = [
+            { shirt: '#0284c7', hair: '#1e293b' },
+            { shirt: '#db2777', hair: '#451a03' },
+            { shirt: '#eab308', hair: '#0f172a' },
+            { shirt: '#7c3aed', hair: '#27272a' },
+            { shirt: '#f97316', hair: '#422006' }
+        ];
+
+        // --- DESENHOS COMPARTILHADOS ---
+        function drawRoomBackdrop(headerTitle, floorColorTop = '#b45309', floorColorBottom = '#78350f') {
+            const wallGrad = ctx.createLinearGradient(0, 0, 0, 340);
+            wallGrad.addColorStop(0, '#fef3c7');
+            wallGrad.addColorStop(1, '#fde68a');
+            ctx.fillStyle = wallGrad;
+            ctx.fillRect(0, 0, WIDTH, 340);
+
+            // Faixa superior
+            ctx.fillStyle = '#15803d';
+            ctx.fillRect(0, 0, WIDTH, 14);
+            ctx.fillStyle = '#facc15';
+            ctx.fillRect(0, 14, WIDTH, 5);
+
+            // Placa de Título
+            ctx.fillStyle = '#14532d';
+            ctx.beginPath();
+            ctx.roundRect(WIDTH / 2 - 235, 24, 470, 36, 12);
+            ctx.fill();
+            ctx.strokeStyle = '#facc15';
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 15px Fredoka, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(headerTitle, WIDTH / 2, 47);
+
+            // Piso
+            const floorGrad = ctx.createLinearGradient(0, 340, 0, HEIGHT);
+            floorGrad.addColorStop(0, floorColorTop);
+            floorGrad.addColorStop(1, floorColorBottom);
+            ctx.fillStyle = floorGrad;
+            ctx.fillRect(0, 340, WIDTH, HEIGHT - 340);
+        }
+
+        function drawStudent(x, y, pal, options = {}) {
+            ctx.save();
+            ctx.translate(x, y);
+
+            // Sombra
+            ctx.fillStyle = 'rgba(0,0,0,0.18)';
+            ctx.beginPath();
+            ctx.ellipse(0, 56, 20, 6, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (!options.seated) {
+                ctx.fillStyle = '#1e293b';
+                ctx.fillRect(-9, 28, 7, 26);
+                ctx.fillRect(2, 28, 7, 26);
+            }
+
+            // Camiseta
+            ctx.fillStyle = pal.shirt;
+            ctx.beginPath();
+            ctx.roundRect(-15, -4, 30, 36, 9);
+            ctx.fill();
+
+            // Cabeça
+            ctx.fillStyle = '#fed7aa';
+            ctx.beginPath();
+            ctx.arc(0, -20, 15, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Cabelo
+            ctx.fillStyle = pal.hair;
+            ctx.beginPath();
+            ctx.arc(0, -24, 15, Math.PI, 0);
+            ctx.fill();
+
+            // Olhos e expressão
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath();
+            ctx.arc(-4, -20, 2, 0, Math.PI * 2);
+            ctx.arc(5, -20, 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (options.bored) {
+                ctx.strokeStyle = '#7c2d12';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(-4, -13);
+                ctx.lineTo(5, -13);
+                ctx.stroke();
+            } else {
+                ctx.beginPath();
+                ctx.arc(1, -15, 4.5, 0.1, Math.PI - 0.1);
+                ctx.strokeStyle = '#7c2d12';
+                ctx.lineWidth = 1.8;
+                ctx.stroke();
+            }
+
+            // Celular na mão
+            if (options.phone) {
+                ctx.fillStyle = '#0f172a';
+                ctx.beginPath();
+                ctx.roundRect(14, -6, 15, 24, 4);
+                ctx.fill();
+                ctx.fillStyle = options.qr ? '#4ade80' : '#38bdf8';
+                ctx.fillRect(16, -3, 11, 18);
+            }
+
+            ctx.restore();
+        }
+
+        function drawCricketStudent(x, y, options = {}) {
+            ctx.save();
+            ctx.translate(x, y);
+
+            // Sombra
+            ctx.fillStyle = 'rgba(0,0,0,0.22)';
+            ctx.beginPath();
+            ctx.ellipse(0, 56, 22, 7, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Pernas
+            if (!options.seated) {
+                const walkOffset = options.walking ? Math.sin(frame * 0.35) * 4 : 0;
+                ctx.strokeStyle = '#14532d';
+                ctx.lineWidth = 5;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(-7, 28); ctx.lineTo(-9, 52 + walkOffset);
+                ctx.moveTo(7, 28); ctx.lineTo(9, 52 - walkOffset);
+                ctx.stroke();
+            }
+
+            // Camiseta Estudantil Verde e Amarela
+            ctx.fillStyle = '#16a34a';
+            ctx.beginPath();
+            ctx.roundRect(-17, -4, 34, 36, 11);
+            ctx.fill();
+            ctx.fillStyle = '#facc15';
+            ctx.fillRect(-15, 10, 30, 6);
+
+            // Mochila escolar nas costas
+            if (!options.seated) {
+                ctx.fillStyle = '#0284c7';
+                ctx.beginPath();
+                ctx.roundRect(-24, 0, 9, 26, 4);
+                ctx.fill();
+            }
+
+            // Antenas
+            ctx.strokeStyle = '#15803d';
+            ctx.lineWidth = 2.2;
+            ctx.beginPath();
+            ctx.moveTo(-4, -36); ctx.quadraticCurveTo(-12, -50, -18, -54);
+            ctx.moveTo(4, -36); ctx.quadraticCurveTo(12, -50, 18, -54);
+            ctx.stroke();
+
+            // Cabeça do Grilo
+            ctx.fillStyle = '#4ade80';
+            ctx.beginPath();
+            ctx.arc(0, -21, 18, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#15803d';
+            ctx.stroke();
+
+            // Olhos
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(-5, -23, 5, 0, Math.PI * 2);
+            ctx.arc(6, -23, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath();
+            ctx.arc(-4, -23, 2.5, 0, Math.PI * 2);
+            ctx.arc(7, -23, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Sorriso
+            ctx.beginPath();
+            ctx.arc(1, -15, 6.5, 0.15, Math.PI - 0.15);
+            ctx.strokeStyle = '#14532d';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Smartphone com Voucher / Wi-Fi
+            if (options.phone) {
+                ctx.fillStyle = '#0f172a';
+                ctx.beginPath();
+                ctx.roundRect(16, -6, 17, 26, 4);
+                ctx.fill();
+                ctx.fillStyle = options.wifi ? '#38bdf8' : '#4ade80';
+                ctx.fillRect(18, -3, 13, 20);
+                // Símbolo QR ou Wi-Fi na tela
+                ctx.fillStyle = '#064e3b';
+                ctx.fillRect(20, 1, 4, 4);
+                ctx.fillRect(25, 6, 4, 4);
+            }
+
+            ctx.restore();
+        }
+
+        // --- ETAPA 1: CATRACA & VOUCHER DIGITAL ---
+        function drawStage1() {
+            drawRoomBackdrop('ETAPA 1: CATRACA RÁPIDA COM VOUCHER DIGITAL');
+
+            // LADO ESQUERDO: Fila Tradicional Lenta com 5 alunos esperando devagar
+            ctx.fillStyle = 'rgba(239, 68, 68, 0.14)';
+            ctx.beginPath();
+            ctx.roundRect(24, 78, 355, 295, 16);
+            ctx.fill();
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.fillStyle = '#b91c1c';
+            ctx.font = 'bold 13px Fredoka, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('🐢 FILA TRADICIONAL LENTA (5 ALUNOS)', 201, 102);
+            ctx.font = '11px Fredoka, sans-serif';
+            ctx.fillText('Espera demorada sem voucher digital...', 201, 119);
+
+            // Desenha 5 alunos na fila tradicional balançando devagar
+            for (let i = 0; i < 5; i++) {
+                const sway = Math.sin(frame * 0.04 + i) * 2;
+                const sx = 65 + i * 62 + sway;
+                drawStudent(sx, 292, PEER_COLORS[i % PEER_COLORS.length], { bored: true });
+            }
+
+            // LADO DIREITO: Via Expressa Voucher Digital (Grilo + 3 alunos na frente)
+            ctx.fillStyle = 'rgba(22, 163, 74, 0.15)';
+            ctx.beginPath();
+            ctx.roundRect(398, 78, 478, 295, 16);
+            ctx.fill();
+            ctx.strokeStyle = '#16a34a';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            ctx.fillStyle = '#15803d';
+            ctx.font = 'bold 13px Fredoka, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('⚡ CATRACA VOUCHER DIGITAL (PASSAGEM RÁPIDA)', 637, 102);
+
+            // Catraca Eletrônica Digital no centro-direita
+            const gateX = 740;
+            const gateY = 232;
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath();
+            ctx.roundRect(gateX, gateY, 64, 122, 12);
+            ctx.fill();
+
+            // Visor QR Code
+            ctx.fillStyle = voucherScanned ? '#22c55e' : '#facc15';
+            ctx.beginPath();
+            ctx.roundRect(gateX + 8, gateY + 12, 48, 34, 8);
+            ctx.fill();
+            ctx.fillStyle = '#0f172a';
+            ctx.font = 'bold 10px Fredoka, sans-serif';
+            ctx.fillText(voucherScanned ? 'LIBERADO!' : 'QR CODE', gateX + 32, gateY + 33);
+
+            // Braço da Catraca
+            ctx.strokeStyle = voucherScanned ? '#4ade80' : '#facc15';
+            ctx.lineWidth = 7;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(gateX, gateY + 60);
+            if (voucherScanned) {
+                ctx.lineTo(gateX - 16, gateY + 106);
+            } else {
+                ctx.lineTo(gateX - 56, gateY + 60);
+            }
+            ctx.stroke();
+
+            // Animação após leitura do voucher: os 3 alunos e o Grilo passam direto sem demora
+            if (voucherScanned) {
+                stage1TransitionTimer++;
+                cricketX1 += 8.5;
+                voucherStudentsX = voucherStudentsX.map(x => x + 9.5);
+                if (stage1TransitionTimer > 42) {
+                    startStage2();
+                }
+            }
+
+            // Desenha os 3 alunos esperando na frente para leitura do voucher digital
+            voucherStudentsX.forEach((vx, idx) => {
+                if (vx < WIDTH + 40) {
+                    drawStudent(vx, 292, PEER_COLORS[(idx + 1) % PEER_COLORS.length], { phone: true, qr: true });
+                }
+            });
+
+            // Jogador Principal: Grilo Estudante com celular exibindo Voucher Digital
+            if (cricketX1 < WIDTH + 40) {
+                drawCricketStudent(cricketX1, 292, { phone: true, walking: voucherScanned });
+
+                if (!voucherScanned) {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.roundRect(cricketX1 - 52, 192, 125, 36, 10);
+                    ctx.fill();
+                    ctx.strokeStyle = '#16a34a';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    ctx.fillStyle = '#14532d';
+                    ctx.font = 'bold 11px Fredoka, sans-serif';
+                    ctx.fillText('📱 Meu Voucher Pronto!', cricketX1 + 10, 214);
+                }
+            }
+        }
+
+        function triggerVoucherScan() {
+            if (!gameRunning || stage !== 1 || voucherScanned) return;
+            voucherScanned = true;
+            score += 200;
+            document.getElementById('hudScoreText').textContent = `${score} pts`;
+            sfx.playQRBeep();
+
+            floatingFeedbacks.push({
+                x: 660,
+                y: 205,
+                text: 'BIP! Voucher Lido — 3 Alunos Liberados!',
+                color: '#15803d',
+                life: 45
+            });
+        }
+
+        // --- ETAPA 2: BUFFET SAUDÁVEL & CARDÁPIO DIGITAL ---
+        function startStage2() {
+            stage = 2;
+            pickedFoods = [];
+            BUFFET_FOODS.forEach(f => f.picked = false);
+
+            document.getElementById('hudStageText').textContent = 'Etapa 2/4';
+            document.getElementById('stageProgressBar').style.width = '40%';
+            document.getElementById('stepLabel2').classList.add('text-yellow-300', 'font-bold');
+
+            document.getElementById('stageHintIcon').innerHTML = '<i class="fa-solid fa-utensils"></i>';
+            document.getElementById('stageHintText').textContent = 'Escolha os 3 alimentos saudáveis e veja o Cardápio de Amanhã!';
+            document.getElementById('btnMainActionIcon').className = 'fa-solid fa-apple-whole text-lg';
+            document.getElementById('btnMainActionText').textContent = 'ESCOLHER ALIMENTO SAUDÁVEL (ESPAÇO / CLIQUE)';
+            document.getElementById('tomorrowMenuPopup').classList.remove('hidden');
+        }
+
+        function drawStage2() {
+            drawRoomBackdrop('ETAPA 2: BUFFET SAUDÁVEL & CARDÁPIO DIGITAL');
+
+            // Grilo Estudante escolhendo no buffet
+            drawCricketStudent(92, 275, {});
+
+            // Bancada do Buffet Saudável
+            ctx.fillStyle = '#15803d';
+            ctx.beginPath();
+            ctx.roundRect(120, 312, 435, 34, 10);
+            ctx.fill();
+            ctx.fillStyle = '#fef08a';
+            ctx.font = 'bold 11px Fredoka, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('BUFFET NUTRITIVO DO DIA (CLIQUE NOS 3 PRATOS)', 337, 333);
+
+            // Desenha os 3 alimentos saudáveis disponíveis
+            BUFFET_FOODS.forEach(food => {
+                if (food.picked) return;
+                const pulse = Math.sin(frame * 0.1) * 3;
+                ctx.save();
+                ctx.translate(food.x, food.y + pulse);
+
+                ctx.fillStyle = food.color;
+                ctx.beginPath();
+                ctx.arc(0, 0, food.r, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.lineWidth = 3.5;
+                ctx.strokeStyle = '#16a34a';
+                ctx.stroke();
+
+                ctx.font = '32px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(food.icon, 0, -4);
+
+                ctx.fillStyle = '#0f172a';
+                ctx.beginPath();
+                ctx.roundRect(-58, 30, 116, 20, 7);
+                ctx.fill();
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 9.5px Fredoka, sans-serif';
+                ctx.fillText(food.label, 0, 40);
+
+                ctx.restore();
+            });
+
+            // Bandeja do Grilo na parte inferior
+            const trayX = 145;
+            const trayY = 368;
+            ctx.fillStyle = '#14532d';
+            ctx.beginPath();
+            ctx.roundRect(trayX, trayY, 385, 92, 18);
+            ctx.fill();
+            ctx.lineWidth = 3.5;
+            ctx.strokeStyle = '#facc15';
+            ctx.stroke();
+
+            ctx.fillStyle = '#fef08a';
+            ctx.font = 'bold 12px Fredoka, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`BANDEJA SAUDÁVEL (${pickedFoods.length}/3)`, trayX + 192, trayY + 20);
+
+            for (let i = 0; i < 3; i++) {
+                const sx = trayX + 75 + i * 115;
+                const sy = trayY + 55;
+                ctx.fillStyle = 'rgba(255,255,255,0.18)';
+                ctx.beginPath();
+                ctx.arc(sx, sy, 25, 0, Math.PI * 2);
+                ctx.fill();
+
+                if (pickedFoods[i]) {
+                    ctx.font = '28px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(pickedFoods[i].icon, sx, sy);
+                }
+            }
+        }
+
+        function pickHealthyFood(food) {
+            if (!food || food.picked) return;
+            food.picked = true;
+            pickedFoods.push(food);
+            score += 150;
+            document.getElementById('hudScoreText').textContent = `${score} pts`;
+            sfx.playFoodPick();
+
+            floatingFeedbacks.push({
+                x: food.x,
+                y: food.y - 30,
+                text: `+150 ${food.label}!`,
+                color: '#15803d',
+                life: 40
+            });
+
+            if (pickedFoods.length >= 3) {
+                setTimeout(() => {
+                    startStage3();
+                }, 450);
+            }
+        }
+
+        // --- ETAPA 3: MESA DO REFEITÓRIO (COMENDO E USANDO O CELULAR) ---
+        function startStage3() {
+            stage = 3;
+            mealProgress = 0;
+            activePhoneBubble = '📱 Checando avisos da turma...';
+
+            document.getElementById('tomorrowMenuPopup').classList.add('hidden');
+            document.getElementById('hudStageText').textContent = 'Etapa 3/4';
+            document.getElementById('stageProgressBar').style.width = '68%';
+            document.getElementById('stepLabel3').classList.add('text-yellow-300', 'font-bold');
+
+            document.getElementById('stageHintIcon').innerHTML = '<i class="fa-solid fa-mobile-screen-button"></i>';
+            document.getElementById('stageHintText').textContent = 'Toque ou aperte ESPAÇO para comer rápido e ver avisos no celular!';
+            document.getElementById('btnMainActionIcon').className = 'fa-solid fa-utensils text-lg';
+            document.getElementById('btnMainActionText').textContent = 'COMER & CHECAR CELULAR RÁPIDO (ESPAÇO / TOQUE)';
+        }
+
+        function drawStage3() {
+            drawRoomBackdrop('ETAPA 3: MESA DO REFEITÓRIO (COMENDO & USANDO O CELULAR)');
+
+            // Colegas almoçando em mesas ao fundo
+            drawStudent(140, 275, PEER_COLORS[0], { seated: true });
+            drawStudent(750, 275, PEER_COLORS[2], { seated: true, phone: true });
+
+            // Mesa Principal Central
+            const tableX = 290;
+            const tableY = 290;
+
+            // Banco do Grilo
+            ctx.fillStyle = '#78350f';
+            ctx.fillRect(365, 322, 170, 14);
+
+            // Grilo sentado comendo da bandeja e olhando o smartphone
+            const eatBob = Math.sin(frame * 0.25) * 3;
+            drawCricketStudent(425, 268 + eatBob, { seated: true, phone: true });
+
+            // Tampo da Mesa
+            ctx.fillStyle = '#f8fafc';
+            ctx.beginPath();
+            ctx.roundRect(tableX, tableY, 320, 22, 10);
+            ctx.fill();
+            ctx.strokeStyle = '#15803d';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Pés da mesa
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(tableX + 35, tableY + 22, 14, 72);
+            ctx.fillRect(tableX + 270, tableY + 22, 14, 72);
+
+            // Bandeja na mesa com os alimentos restantes
+            ctx.fillStyle = '#16a34a';
+            ctx.beginPath();
+            ctx.roundRect(tableX + 75, tableY - 12, 130, 12, 5);
+            ctx.fill();
+
+            const remainingIcons = ['🍚', '🐟', '🥗'].slice(mealProgress);
+            ctx.font = '24px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(remainingIcons.length > 0 ? remainingIcons.join(' ') : '✨ Prato Limpo!', tableX + 140, tableY - 18);
+
+            // Balão de Interação / Aviso Acadêmico no Smartphone
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath();
+            ctx.roundRect(455, 165, 250, 44, 14);
+            ctx.fill();
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+
+            ctx.fillStyle = '#38bdf8';
+            ctx.font = 'bold 12px Fredoka, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(activePhoneBubble, 580, 191);
+
+            // Barra de progresso da refeição rápida
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath();
+            ctx.roundRect(350, 102, 200, 26, 12);
+            ctx.fill();
+            ctx.fillStyle = '#4ade80';
+            ctx.font = 'bold 12px Fredoka, sans-serif';
+            ctx.fillText(`Refeição & Avisos: ${mealProgress}/3`, 450, 119);
+        }
+
+        function advanceMealAndPhone() {
+            if (!gameRunning || stage !== 3) return;
+            if (mealProgress >= 3) return;
+
+            sfx.playEatBite();
+            activePhoneBubble = PHONE_NOTIFS[mealProgress];
+            mealProgress++;
+            score += 150;
+            document.getElementById('hudScoreText').textContent = `${score} pts`;
+
+            floatingFeedbacks.push({
+                x: 450,
+                y: 150,
+                text: activePhoneBubble,
+                color: '#0284c7',
+                life: 45
+            });
+
+            if (mealProgress >= 3) {
+                setTimeout(() => {
+                    startStage4();
+                }, 550);
+            }
+        }
+
+        // --- ETAPA 4: ESPAÇO DE CONVIVÊNCIA COM WI-FI LIVRE ---
+        function startStage4() {
+            stage = 4;
+            cricketX4 = 135;
+            wifiConnected = false;
+            wifiTransitionTimer = 0;
+
+            document.getElementById('hudStageText').textContent = 'Etapa 4/4';
+            document.getElementById('stageProgressBar').style.width = '88%';
+            document.getElementById('stepLabel4').classList.add('text-yellow-300', 'font-bold');
+
+            document.getElementById('stageHintIcon').innerHTML = '<i class="fa-solid fa-wifi"></i>';
+            document.getElementById('stageHintText').textContent = 'Toque ou aperte ESPAÇO para conectar ao Wi-Fi Livre!';
+            document.getElementById('btnMainActionIcon').className = 'fa-solid fa-wifi text-lg';
+            document.getElementById('btnMainActionText').textContent = 'CONECTAR AO WI-FI LIVRE (ESPAÇO / TOQUE)';
+        }
+
+        function drawStage4() {
+            drawRoomBackdrop('ETAPA 4: ESPAÇO DE CONVIVÊNCIA COM WI-FI LIVRE', '#0f766e', '#115e59');
+
+            // Plantas decorativas modernas
+            [70, 825].forEach(px => {
+                ctx.fillStyle = '#d97706';
+                ctx.beginPath();
+                ctx.roundRect(px - 16, 298, 32, 42, 6);
+                ctx.fill();
+                ctx.fillStyle = '#22c55e';
+                ctx.beginPath();
+                ctx.arc(px, 282, 24, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#4ade80';
+                ctx.beginPath();
+                ctx.arc(px - 8, 274, 12, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Sofá moderno e pufes coloridos
+            ctx.fillStyle = '#0284c7';
+            ctx.beginPath();
+            ctx.roundRect(455, 265, 220, 75, 18);
+            ctx.fill();
+            ctx.fillStyle = '#38bdf8';
+            ctx.beginPath();
+            ctx.roundRect(465, 305, 200, 35, 10);
+            ctx.fill();
+
+            // Pufe amarelo
+            ctx.fillStyle = '#facc15';
+            ctx.beginPath();
+            ctx.roundRect(350, 308, 75, 34, 16);
+            ctx.fill();
+
+            // Colegas conectados estudando e conversando
+            drawStudent(510, 275, PEER_COLORS[1], { seated: true, phone: true });
+            drawStudent(615, 275, PEER_COLORS[3], { seated: true, phone: true });
+
+            // Torre / Roteador de Sinal Wi-Fi Forte no centro-topo
+            const wifiX = 565;
+            const wifiY = 135;
+            ctx.fillStyle = wifiConnected ? '#16a34a' : '#0f172a';
+            ctx.beginPath();
+            ctx.roundRect(wifiX - 95, wifiY - 40, 190, 68, 16);
+            ctx.fill();
+            ctx.strokeStyle = wifiConnected ? '#facc15' : '#38bdf8';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Ondas de Wi-Fi animadas
+            const waveAlpha = 0.5 + Math.sin(frame * 0.15) * 0.4;
+            ctx.strokeStyle = wifiConnected ? '#facc15' : `rgba(56, 189, 248, ${waveAlpha})`;
+            ctx.lineWidth = 3;
+            [12, 20, 28].forEach(rad => {
+                ctx.beginPath();
+                ctx.arc(wifiX, wifiY - 2, rad, Math.PI * 1.2, Math.PI * 1.8);
+                ctx.stroke();
+            });
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 12px Fredoka, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(wifiConnected ? '✅ WI-FI LIVRE CONECTADO!' : '📶 REDE: CAMPUS_WIFI_LIVRE', wifiX, wifiY + 18);
+
+            // Grilo caminhando até o Espaço de Convivência
+            if (cricketX4 < 385) {
+                cricketX4 += 6.5;
+            }
+            drawCricketStudent(cricketX4, 290, {
+                phone: true,
+                wifi: wifiConnected,
+                walking: cricketX4 < 385
+            });
+
+            if (wifiConnected) {
+                wifiTransitionTimer++;
+                if (wifiTransitionTimer > 45) {
+                    gameRunning = false;
+                    document.getElementById('stageProgressBar').style.width = '100%';
+                    sfx.playVictory();
+                    document.getElementById('finalProposalModal').classList.remove('hidden');
+                }
+            }
+        }
+
+        function connectToFreeWifi() {
+            if (!gameRunning || stage !== 4 || wifiConnected) return;
+            wifiConnected = true;
+            cricketX4 = 385;
+            score += 250;
+            document.getElementById('hudScoreText').textContent = `${score} pts`;
+            sfx.playWifiConnect();
+
+            floatingFeedbacks.push({
+                x: 480,
+                y: 195,
+                text: '📶 Conectado ao Wi-Fi Livre do Campus!',
+                color: '#15803d',
+                life: 50
+            });
+        }
+
+        // --- TEXTOS FLUTUANTES DE FEEDBACK ---
+        function drawFloatingFeedbacks() {
+            for (let i = floatingFeedbacks.length - 1; i >= 0; i--) {
+                const fb = floatingFeedbacks[i];
+                fb.y -= 1.0;
+                fb.life--;
+
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, fb.life / 45);
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.roundRect(fb.x - 125, fb.y - 16, 250, 24, 8);
+                ctx.fill();
+                ctx.fillStyle = fb.color;
+                ctx.font = 'bold 11px Fredoka, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(fb.text, fb.x, fb.y);
+                ctx.restore();
+
+                if (fb.life <= 0) floatingFeedbacks.splice(i, 1);
+            }
+        }
+
+        // --- LOOP PRINCIPAL ---
+        function loop() {
+            frame++;
+            ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+            if (stage === 1) drawStage1();
+            else if (stage === 2) drawStage2();
+            else if (stage === 3) drawStage3();
+            else if (stage === 4) drawStage4();
+
+            drawFloatingFeedbacks();
+
+            if (gameRunning) {
+                animId = requestAnimationFrame(loop);
+            }
+        }
+
+        function startNewGame() {
+            sfx.init();
+            stage = 1;
+            score = 0;
+            voucherScanned = false;
+            stage1TransitionTimer = 0;
+            cricketX1 = 445;
+            voucherStudentsX = [565, 625, 685];
+            pickedFoods = [];
+            mealProgress = 0;
+            wifiConnected = false;
+            floatingFeedbacks = [];
+
+            document.getElementById('hudScoreText').textContent = '0 pts';
+            document.getElementById('hudStageText').textContent = 'Etapa 1/4';
+            document.getElementById('stageProgressBar').style.width = '15%';
+
+            ['stepLabel2', 'stepLabel3', 'stepLabel4'].forEach(id => {
+                document.getElementById(id).classList.remove('text-yellow-300', 'font-bold');
+            });
+            document.getElementById('stepLabel1').classList.add('text-yellow-300', 'font-bold');
+
+            document.getElementById('stageHintIcon').innerHTML = '<i class="fa-solid fa-qrcode"></i>';
+            document.getElementById('stageHintText').textContent = 'Clique ou pressione ESPAÇO para ler o Voucher Digital!';
+            document.getElementById('btnMainActionIcon').className = 'fa-solid fa-qrcode text-lg';
+            document.getElementById('btnMainActionText').textContent = 'LER VOUCHER DIGITAL (ESPAÇO / TOQUE)';
+
+            document.getElementById('startOverlay').classList.add('hidden');
+            document.getElementById('finalProposalModal').classList.add('hidden');
+            document.getElementById('tomorrowMenuPopup').classList.add('hidden');
+            document.getElementById('stageHintBanner').classList.remove('hidden');
+
+            gameRunning = true;
+            if (animId) cancelAnimationFrame(animId);
+            loop();
+        }
+
+        // --- CONTROLES DE INTERAÇÃO ---
+        function handlePrimaryAction() {
+            if (!gameRunning) return;
+            if (stage === 1) {
+                triggerVoucherScan();
+            } else if (stage === 2) {
+                const nextFood = BUFFET_FOODS.find(f => !f.picked);
+                if (nextFood) pickHealthyFood(nextFood);
+            } else if (stage === 3) {
+                advanceMealAndPhone();
+            } else if (stage === 4) {
+                connectToFreeWifi();
+            }
+        }
+
+        function getCanvasCoords(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: (clientX - rect.left) * (WIDTH / rect.width),
+                y: (clientY - rect.top) * (HEIGHT / rect.height)
+            };
+        }
+
+        function handleCanvasPointer(e) {
+            if (!gameRunning) return;
+            if (e.type === 'touchstart') e.preventDefault();
+            const pos = getCanvasCoords(e);
+
+            if (stage === 2) {
+                for (let food of BUFFET_FOODS) {
+                    if (!food.picked && Math.hypot(pos.x - food.x, pos.y - food.y) <= food.r + 16) {
+                        pickHealthyFood(food);
+                        return;
+                    }
+                }
+            }
+            handlePrimaryAction();
+        }
+
+        canvas.addEventListener('mousedown', handleCanvasPointer);
+        canvas.addEventListener('touchstart', handleCanvasPointer, { passive: false });
+
+        window.addEventListener('keydown', (e) => {
+            if ((e.code === 'Space' || e.code === 'Enter') && gameRunning) {
+                e.preventDefault();
+                handlePrimaryAction();
+            }
+        });
+
+        document.getElementById('btnMainAction').addEventListener('click', handlePrimaryAction);
+        document.getElementById('btnStartGame').addEventListener('click', startNewGame);
+        document.getElementById('btnPlayAgain').addEventListener('click', startNewGame);
+
+        // Desenho inicial de pré-visualização
+        drawStage1();
+    </script>
+</body>
+</html>
